@@ -75,7 +75,7 @@ class CrowdStrikeAPIAdapter {
      * @return array $tokens
      */
     private function getTokens($client_id, $client_secret) {
-        $url = $this->host . '/oauth2/token/';
+        $url = $this->host . '/oauth2/token';
         $httpHeader = array(
             "Accept: application/json",
             "Content-Type: application/x-www-form-urlencoded"
