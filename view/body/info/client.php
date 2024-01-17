@@ -125,6 +125,16 @@
 				<div id="gcbOS_post" class="post_title">GCB 作業系統統計圖</div>
 				<div class="post_cell">
 					<div id="gcbOS_chart" class="chart"></div>	
+					<div class="post_table">
+						<table>
+							<tr>
+								<th>項目</th>
+								<th>數值</th>
+								<th>百分比</th>
+							</tr>
+							<?=$gcbOS_table?>
+						</table>
+					</div>
 			    </div>		
 				<div id="wsusPass_post" class="post_title">WSUS</div>
 					<div class="post_cell">

@@ -70,6 +70,19 @@ $total_edr_rate = round($total_edr_num / $total_edr_num * 100, 2) . "%";
 $stopping_monitor_rate = round($stopping_monitor_num / $total_edr_num * 100 ,2) . "%"; 
 $suspicious_host_rate = round($suspicious_host_num / $total_edr_num * 100, 2) . "%"; 
 
+// OS統計
+$sql = "SELECT b.name as name, COUNT(b.name) as count FROM gcb_client_list as a LEFT JOIN gcb_os as b ON a.OSEnvID = b.id WHERE b.name IS NOT NULL GROUP BY b.name ORDER by count desc";
+$ou_list = $db->execute($sql);
+$gcb_total = array_sum(array_column($ou_list, 'count'));
+$gcbOS_table = '';
+foreach ($ou_list as $key => $ou) {
+    $gcbOS_table .= '<tr>';
+    $gcbOS_table .= '<td>' . $ou['name'] . '</td>';
+    $gcbOS_table .= '<td>' . $ou['count'] . '</td>';
+    $gcbOS_table .= '<td>' . round($ou['count'] * 100 / $gcb_total, 2) . '% </td>';
+    $gcbOS_table .= '</tr>';
+}
+
 require 'view/header/default.php'; 
 require 'view/body/info/client.php';
 require 'view/footer/default.php'; 
