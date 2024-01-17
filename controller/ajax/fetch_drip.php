@@ -2,7 +2,7 @@
 require_once __DIR__ .'/../../vendor/autoload.php';
 
 $db = Database::get();
-$inputFileName =  __DIR__ .'/../../upload/drip/yckuo_DrIP_IP_MAC_USED_IP_List.xls';
+$inputFileName =  __DIR__ .'/../../upload/drip/DrIP_IP_MAC_USED_IP_List.xls';
 /** Load $inputFileName to a Spreadsheet Object  **/
 $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($inputFileName);
 
@@ -34,31 +34,37 @@ $db->delete($table, $key_column, $id);
 
 $count = 0;
 foreach($Rows as $data) {
-    if(!empty($data[4]) && $data[4] != 'IP') {
+    if(!empty($data[5]) && $data[5] != 'IP') {
+
+        //var_dump($data);
+        //return;
+
         $status['isOnline']= trim($data[0]);
         $status['DetectorName']= trim($data[2]);
-        $status['DetectorIP']= trim($data[29]);
-        $status['DetectorGroup']= trim($data[3]);
-        $status['IP']= trim($data[4]);
-        $status['MAC']= trim($data[5]);
-        $status['IP_Block']= trim($data[6]);
-        $status['MAC_Block']= trim($data[7]);
-        $status['GroupName']= trim($data[8]);
-        $status['ClientName']= trim($data[9]);
-        $status['SwitchIP']= trim($data[12]);
-        $status['SwitchName']= trim($data[13]);
-        $status['PortName']= trim($data[14]);
-        $status['NICProductor']= trim($data[11]);
-        $status['LastOnlineTime']= trim($data[23]);
-        $status['LastOfflineTime']= trim($data[24]);
-        $status['IPMAC_Bind']= trim($data[25]);
-        $status['IP_Grant']= trim($data[31]);
-        $status['MAC_Grant']= trim($data[32]);
-        $status['IP_BlockReason']= trim($data[41]);
-        $status['MAC_BlockReason']= trim($data[42]);
-        $status['MemoByMAC']= trim($data[44]);
-        $status['MemoByIP']= trim($data[45]);
+        $status['DetectorIP']= trim($data[32]);
+        $status['DetectorGroup']= trim($data[2]);
+        $status['IP']= trim($data[5]);
+        $status['MAC']= trim($data[6]);
+        $status['IP_Block']= trim($data[7]);
+        $status['MAC_Block']= trim($data[8]);
+        $status['GroupName']= trim($data[9]);
+        $status['ClientName']= trim($data[10]);
+        $status['SwitchIP']= trim($data[15]);
+        $status['SwitchName']= trim($data[16]);
+        $status['PortName']= trim($data[17]);
+        $status['NICProductor']= trim($data[13]);
+        $status['LastOnlineTime']= trim($data[26]);
+        $status['LastOfflineTime']= trim($data[27]);
+        $status['IPMAC_Bind']= trim($data[28]);
+        $status['IP_Grant']= trim($data[34]);
+        $status['MAC_Grant']= trim($data[35]);
+        $status['IP_BlockReason']= trim($data[44]);
+        $status['MAC_BlockReason']= trim($data[45]);
+        $status['MemoByMAC']= trim($data[48]);
+        $status['MemoByIP']= trim($data[65]);
         
+        echo $status['SwitchName'] . PHP_EOL;
+
         $db->insert($table, $status);
         $count = $count + 1;							
     }

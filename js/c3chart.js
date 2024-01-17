@@ -10,6 +10,8 @@ $(document).ready(function(){
 	}else{							   
         url='http://' + hostname;
     }
+	url = location.origin;
+	
 	//bind show_chart_btn
 	$('#show_chart_btn').click(function (){
 		c3_chart_Ranking_ajax(url);

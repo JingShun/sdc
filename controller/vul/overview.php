@@ -7,27 +7,27 @@ $local_gov_vuls = array(
         'ou_vuls' => array(),
         'ou_number' => 0,
     ),
-    array(
-        'id' => 'chiayi',
-        'displayname' => '嘉義市',
-        'oid' => '2.16.886.101.90014.20002',
-        'ou_vuls' => array(),
-        'ou_number' => 0,
-    ),
-    array(
-        'id' => 'cyhg',
-        'displayname' => '嘉義縣',
-        'oid' => '2.16.886.101.90013.20002',
-        'ou_vuls' => array(),
-        'ou_number' => 0,
-    ),
-    array(
-        'id' => 'yunlin', 
-        'displayname' => '雲林縣',
-        'oid' => '2.16.886.101.90012.20002',
-        'ou_vuls' => array(),
-        'ou_number' => 0,
-    ),
+    // array(
+    //     'id' => 'chiayi',
+    //     'displayname' => '嘉義市',
+    //     'oid' => '2.16.886.101.90014.20002',
+    //     'ou_vuls' => array(),
+    //     'ou_number' => 0,
+    // ),
+    // array(
+    //     'id' => 'cyhg',
+    //     'displayname' => '嘉義縣',
+    //     'oid' => '2.16.886.101.90013.20002',
+    //     'ou_vuls' => array(),
+    //     'ou_number' => 0,
+    // ),
+    // array(
+    //     'id' => 'yunlin', 
+    //     'displayname' => '雲林縣',
+    //     'oid' => '2.16.886.101.90012.20002',
+    //     'ou_vuls' => array(),
+    //     'ou_number' => 0,
+    // ),
 );
 
 foreach ($local_gov_vuls as $index => $local_gov_vul) {
