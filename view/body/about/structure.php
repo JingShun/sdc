@@ -81,6 +81,36 @@
 								</div>
 							</div>
 						</div> <!-- end of .card -->
+						<div class="card">
+							<a href="/images/akamai_cdn.jpg" target="_blank">
+							<div class="image">
+								<img src="/images/akamai_cdn.jpg">
+							</div>
+							</a>
+							<div class="content">
+								<div class="meta">
+									<span class="date">Joined in 2023</span>
+								</div>
+								<div class="description">
+								    Akamai CDN 接入運作原理	
+								</div>
+							</div>
+						</div> <!-- end of .card -->
+						<div class="card">
+							<a href="/images/twcc_network.png" target="_blank">
+							<div class="image">
+								<img src="/images/twcc_network.png">
+							</div>
+							</a>
+							<div class="content">
+								<div class="meta">
+									<span class="date">Joined in 2023</span>
+								</div>
+								<div class="description">
+								    國網架構示意圖	
+								</div>
+							</div>
+						</div> <!-- end of .card -->
 					</div> <!-- end of .cards --> 
 				</div> <!--end of .post_cell -->
 			</div> <!--end of .post --> 
