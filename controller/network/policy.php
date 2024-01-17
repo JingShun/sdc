@@ -1,6 +1,6 @@
 <?php 
 // above PAN-OS 9.0
-$pa_hosts = ['yonghua', 'minjhih', 'idc'];
+$pa_hosts = ['yonghua', 'minjhih']; // , 'idc'
 $policy_configs = array(
     array('key' => 'ExpiredSecurityRules', 'label' => 'ExpiredSecurityRules(含1個月內到期)', 'type' => 'SecurityRules'),
     array('key' => 'SecurityRules', 'label' => 'SecurityRules', 'type' => 'SecurityRules'),
@@ -112,6 +112,9 @@ foreach($pa_hosts as $host) {
                 $target_days = 30;
                 $keywords = preg_split("/-|_/", $val['schedule']);
                 $end_date = trim(end($keywords));
+
+                echo $end_date ."|". PHP_EOL;
+                
                 $days = getDaysAfterToday($end_date, $format='Ymd');
 
                 if ($days > $target_days) {
@@ -130,6 +133,8 @@ foreach($pa_hosts as $host) {
     }
     $host_policy_results[$host] = $policy_results;
 }
+
+$host_policy_results['idc'] = [];
 
 require 'view/header/default.php'; 
 require 'view/body/network/policy.php';

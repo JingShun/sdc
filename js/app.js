@@ -1402,7 +1402,7 @@ function pageSwitch() {
 
     var queryTypes = ['event', 'ncert', 'contact', 'client'];
     var clientTypes = ['drip', 'gcb', 'wsus', 'antivirus', 'edr'];
-    var networkTypes = ['yonghua', 'minjhih', 'idc', 'intrayonghua'];
+    var networkTypes = ['yonghua', 'minjhih', 'intrayonghua']; // , 'idc'
     var queryTypesIndex = queryTypes.indexOf(subpage);
 
     switch(true){
