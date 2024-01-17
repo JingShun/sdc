@@ -281,13 +281,13 @@ $(document).ready(function(){
 	});
 
 	// query.php's component action
-	$('.post.client .query_content, .post.scanResult .query_content, .post.network .query_content').on('click', 'button.close', function() {
+	$('.post.client .query_content, .post.scanResult .query_content, .post.network .query_content, .post.twcc_server .query_content').on('click', 'button.close', function() {
 		var query_label = $(this).parent('.query_label');
 		query_label.remove();
 	});
 
 	/*vul.php's component action*/
-	$('.post.client i.square.icon, .post.scanResult i.square.icon').on('click', function() {
+	$('.post.client i.square.icon, .post.scanResult i.square.icon, .post.twcc_server i.square.icon').on('click', function() {
 		var type = $(this).closest('.post').attr('class').split(' ')[1];
 		var selector = ".post." + type + " ";
 		if(type == 'client') {
@@ -325,7 +325,7 @@ $(document).ready(function(){
 	});
 	
 	// bind submit of form
-	$('.post.event form, .post.ncert form, .post.contact form, .post.client form').on('submit', function(e){
+	$('.post.event form, .post.ncert form, .post.contact form, .post.client form, .post.twcc_server form').on('submit', function(e){
 		var type = $(this).closest('.post').attr('class').split(' ')[1];
 		if(type == 'client') {
             type = $(this).closest('.tab-content').attr('class').split(' ')[1];
@@ -1423,6 +1423,11 @@ function pageSwitch() {
 				query_ajax(parameter);
 			});
         	break;
+		// load twcc server query
+		  case (mainpage == 'twcc' && subpage == 'server'):
+			var parameter = {type: 'twcc_server', ap: 'html', page: page, partial: false};
+			query_ajax(parameter);
+			break;
 		// load vul query
       	case (mainpage == 'vul' && subpage == 'search'):
             var parameter = {type: 'scanResult', ap: 'html', page: page, partial: false};

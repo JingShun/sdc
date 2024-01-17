@@ -30,6 +30,7 @@ if (!empty($jsonSorts)) {
     $jsonSorts = $gump->sanitize(json_decode(html_entity_decode($jsonSorts), true));
 }
 
+$select = '*';
 switch($type){
 	case 'event':
 		$condition_table = "security_event";
@@ -98,6 +99,37 @@ switch($type){
 		$table = "edr_coreclouds";
 		$order_by = "id";	
 		break;
+	case 'twcc_server':
+		$condition_table = "twcc_server";
+		$table = "twcc_server INNER JOIN twcc_site ON twcc_server.site_id = twcc_site.site_id";
+		$order_by = "twcc_server.public_ip DESC, twcc_server.site_id DESC, server_id DESC";	
+        $select = "twcc_server.site_id, twcc_site.site_name, twcc_site.site_desc,
+            twcc_site.`status` AS site_status,
+            twcc_server.server_id, twcc_server.hostname,
+            twcc_server.os, twcc_server.os_version,
+            twcc_server.`status` AS server_status,
+            twcc_server.image, twcc_server.flavor,
+            twcc_server.private_ip, twcc_server.network_id, twcc_server.network_name,
+            twcc_server.public_ip, twcc_server.public_ip_name,
+            twcc_server.waf_id, twcc_server.waf_hostname";
+
+        if (!empty($jsonConditions)) {
+            // reset field name
+            foreach ($jsonConditions as &$value) {
+                switch ($value['keyword']) {
+                    case 'public_ip':
+                        $value['keyword'] = 'twcc_server.public_ip';
+                        break;
+                    case 'private_ip':
+                        $value['keyword'] = 'twcc_server.private_ip';
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+		break;
 	default:
         echo "no target type";
         return;
@@ -143,7 +175,7 @@ if (!empty($jsonSorts)) {
 
 $limit = 10;
 $links = 4;
-$query = "SELECT * FROM {$table} WHERE {$condition} ORDER BY {$order_by}";
+$query = "SELECT {$select} FROM {$table} WHERE {$condition} ORDER BY {$order_by}";
 
 $Paginator = new Paginator($query, $data_array);
 $entries = $Paginator->getData($limit, $page, $data_array);
@@ -177,6 +209,8 @@ if ($ap=='csv') {
 			break;
 		case 'antivirus': 
 			break;
+        case 'twcc_server': 
+            break;
 	}
 } elseif($ap=='html') { 
 ?>
@@ -674,6 +708,60 @@ if ($ap=='csv') {
                     <?php endforeach ?>
                 </div>
                 <?php break; ?>
+			<?php case "twcc_server": ?>
+                <?php
+                ?>
+                
+                <div class='ui relaxed divided list'>
+                <?php foreach($entries->data as $server): ?>
+                    <div class='item'>
+                        <div class='content'>
+                            <a>
+                            <i class="<?=$server['site_status'] == 'Ready' ? 'green circle icon' : 'circle outline icon' ?>"></i>   
+                            <?=$server['site_name']?>&nbsp;&nbsp;
+                            <?=$server['os']?>&nbsp;&nbsp;
+                            <span style='background:#fbc5c5'><?=$server['private_ip']?></span>&nbsp;&nbsp;
+                            <span style='background:#fde087'><?=$server['public_ip'] ?: '-' ?></span>&nbsp;&nbsp;
+                            <?=$server['network_name']?>&nbsp;&nbsp;
+                            <span style='background:#DDDDDD'><?=$server['flavor']?></span>&nbsp;&nbsp;
+                            <?=$server['site_desc']?>&nbsp;&nbsp;
+                            <i class='angle down icon'></i>
+                            </a>
+                            <div class='description'>
+                                <ol>
+                                    <li>站台名稱: <?=$server['site_name']?></li>
+                                    <li>站台描述: <?=$server['site_desc']?></li>
+                                    <li>主機名稱: <?=$server['hostname']?></li>
+                                    <li>os: <?=$server['os']?></li>
+                                    <li>站台狀態: <?=$server['site_status']?></li>
+                                    <li>主機狀態: <?=$server['server_status']?></li>
+                                    <li>對外ip: <?=$server['public_ip'] ?: '-' ?></li>
+                                    <li>內部IP: <?=$server['private_ip']?></li>
+                                    <li>network_name: <?=$server['network_name']?></li>
+                                    <li>public_ip_name: <?=$server['public_ip_name']?></li>
+                                    <li>waf_hostname: <?=$server['waf_hostname']?></li>
+                                    <li>VM型號: <?=$server['flavor']?></li>
+                                    <li>映像檔: <?=$server['image']?></li>
+                                    <li>os版本: <?=$server['os_version']?></li>
+                                    <li>server_id: <?=$server['server_id']?></li>
+                                    <li>site_id: <?=$server['site_id']?></li>
+                                    <li>network_id: <?=$server['network_id']?></li>
+                                    <li>waf_id: <?=$server['waf_id']?></li>
+                                
+                                    <li><button type="submit" class="ui button tiny purple" onclick="twcc_fw(<?=$server['server_id']?>);$(this).addClass('disabled');">網路規則</button></li>
+                                </ol>
+
+                                <div id="fwInfo<?=$server['server_id']?>">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach ?>
+                <script>$('.ui.accordion').accordion('refresh');</script>
+                </div>
+                <?php break; ?>
+
 		<?php endswitch ?>
 		<?=$Paginator->createLinks($links, 'ui pagination menu', $pageAttr, $method='ajax')?>
     <?php endif ?>
