@@ -43,6 +43,11 @@ foreach($pa_hosts as $host) {
                 $target_days = 30;
                 $keywords = preg_split("/-|_/", $val['schedule']);
                 $end_date = trim(end($keywords));
+                $end_date = substr($end_date, 0, 8);
+
+                if(strlen($end_date) == 4)
+                    $end_date = date('Y') . $end_date;
+
                 $days = getDaysAfterToday($end_date, $format='Ymd');
 
                 if ($days > $target_days) {
