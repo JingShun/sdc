@@ -3,6 +3,7 @@ namespace gcb\api;
 
 /**
  * 從瑞思Rapix GCB網站分離出來的Web API功能
+ * @since 1.1.0 同步阿舜版的OU部分片段
  * @since 1.0.0 完成登入、Client、CPE資產取得
  * @author 阿舜 <wewe987001@email.com>
  */
@@ -191,7 +192,190 @@ class RapixWebAPIAdapter {
         }
         return $client_list;
     }
+    // =========
+    // OU 
+    // =========
 
+    /** 取得OU，把巢狀結構攤平，採嵌套集合模型（Nested Set Model）的資料結構
+     * @return array[]
+     */
+    public function fetchOU()
+    {
+        $this->refreshTokens();
+        $url =  $this->host . '/api/web/client/organization/tree';
+        $postData = '{"q":{"function":{"COUNT":{},"COUNTS":[],"SUM":[],"GROUP_COUNT":[],"BETWEEN":true,"SKIP_OMIT_EMPTY":true,"BOOL":{"expand":{"inherit":true,"is":[{"and":{"Level":{"lte":5}}}]}}}},"filter":[{"operator":"AND","type":"column","name":"","comparison_op":"","content":""},{"operator":"AND","type":"column","name":"OSEnvID","comparison_op":"IN","content":"32,256,512,2048,536870912,2,8,131072,,2,4,6","_global":true}]}';
+        $html = $this->sendHttpRequest($url, $postData);
+
+        $dataList = [];
+        $list = json_decode($html, true);
+        $treeIndex = 0;
+        foreach ($list as $item) {
+            $this->deepParseOU($item, $dataList, $treeIndex);
+        }
+
+        return $dataList;
+    }
+
+    private function deepParseOU($item, &$dataList, &$preTreeIndex = 0)
+    {
+
+        $currentIndex = count($dataList);
+        $data = [
+            'id' => $item['ID'],
+            'oid' => (empty($item['Attributes']['ObjectIdentifier']) ? '' : $item['Attributes']['ObjectIdentifier']),
+            'dn' => $item['DN'],
+            'title' => $item['Title'],
+            'depth' => $item['Attributes']['Depth'],
+            'parent_id' => (empty($item['Parent']['ID']) ? -1 : $item['Parent']['ID']),
+            'count' => (empty($item['Attributes']['Metrics']['Inherit']['COUNT']['*']) ? 0 : $item['Attributes']['Metrics']['Inherit']['COUNT']['*']),
+            'created_at' => $item['Attributes']['CreatedAt'],
+            'updated_at' => $item['Attributes']['UpdatedAt'],
+
+            'tree_left' => (++$preTreeIndex),
+            'tree_right' => null,
+        ];
+        $dataList[$currentIndex] = $data;
+
+        if (!empty($item['Children']) && is_array($item['Children'])) {
+
+            foreach ($item['Children'] as $subItem) {
+                $this->deepParseOU($subItem, $dataList, $preTreeIndex);
+            }
+        }
+        $dataList[$currentIndex]['tree_right'] = (++$preTreeIndex);
+    }
+
+    /** 新增組織
+     * @param string $name 單位名稱
+     * @param int $parentId 父層單位ID
+     * @return array json結構 
+     */
+    public function createOU(string $name, int $parentId)
+    {
+        $url =  $this->host . '/api/web/organizations.create';
+        $postData = json_encode(
+            [
+                'title' => $name,
+                'parent' =>  ['id' => $parentId]
+            ],
+            JSON_UNESCAPED_UNICODE
+        );
+        $html = $this->sendHttpRequest($url, $postData);
+
+        $result = json_decode($html, true);
+
+        if (empty($result)) return false;
+        if (array_key_exists('error', $result) && $result['status'] == "unauthorized") {
+            $this->refreshTokens();
+            return $this->createOU($name, $parentId);
+        }
+
+        return $result;
+
+        /*
+        成功:
+            {
+                "status": "success",
+                "data": {
+                    "Attributes": {
+                        "CreatedAt": "2024-01-12T01:12:56.9485479Z",
+                        "Depth": 2,
+                        "UpdatedAt": "2024-01-12T01:12:56.948548Z"
+                    },
+                    "DN": "智發中心(B)/eClient",
+                    "ID": 8023,
+                    "Parent": {
+                        "ID": 7826
+                    },
+                    "Title": "eClient"
+                }
+            }
+
+        失敗:
+            {
+                "status": "unauthorized",
+                "error": {
+                    "message": "無效的訪問令牌",
+                    "error": {
+                        "message": "Token is expired",
+                        "error": {
+                            "message": "Token is expired"
+                        }
+                    },
+                    "code": 8
+                }
+            }
+        // */
+    }
+
+    /** 搬移主機到特定組織底下
+     * @param array $clients 主機ID清單
+     * @param int $orgId 單位ID
+     * @param bool $tryAgain 憑證過期時是否自動刷新token再重試
+     * @return array json結構
+     */
+    public function moveOU(array $clients, int $orgId, $tryAgain = true)
+    {
+        $url =  $this->host . '/api/web/clients.move';
+        $postData = json_encode(
+            [
+                'client' =>  ['ids' => $clients],
+                'organization' =>  ['id' => $orgId]
+            ],
+            JSON_UNESCAPED_UNICODE
+        );
+        $html = $this->sendHttpRequest($url, $postData);
+
+        $result = json_decode($html, true);
+
+        if (empty($result)) return false;
+        if (array_key_exists('error', $result) && $result['status'] == "unauthorized" && $tryAgain) {
+            $this->refreshTokens();
+            return $this->moveOU($clients, $orgId, false);
+        }
+
+        return $result;
+
+        /*
+        成功:
+            {
+                "status": "success",
+                "data": {
+                    "Attributes": {
+                        "CreatedAt": "2024-01-12T01:12:56.9485479Z",
+                        "Depth": 2,
+                        "UpdatedAt": "2024-01-12T01:12:56.948548Z"
+                    },
+                    "DN": "智發中心(B)/eClient",
+                    "ID": 8023,
+                    "Parent": {
+                        "ID": 7826
+                    },
+                    "Title": "eClient"
+                }
+            }
+        // */
+    }
+
+    /** 取得VANS各機關回報內政部弱點通報系統的狀態
+     * @return array
+     */
+    public function fetchVansOrgTreeStatus()
+    {
+        $url = 'https://gcb.tainan.gov.tw/api/web/vans-configs/org-tree';
+
+        $html = $this->SendHttpRequest($url, []);
+        $data = json_decode($html, true);
+        if (!empty($data)) {
+            return $data;
+        } else {
+            return [];
+        }
+    }
+
+    // =========
+    // Base
+    // =========
 
     /** Refresh tokens
      */
@@ -240,18 +424,18 @@ class RapixWebAPIAdapter {
      * @param string $url
      * @param array $postField
      * @param array $httpHeader
+     * @param string $responseHeader 回傳的header，方便debug用
+     * @param string $requestHeader 傳送的header，方便debug用
      *
      * @return string $response
      */
 	// send http request with bearer token 
-	private function SendHttpRequest($url, $postField, $httpHeader = array()) {
+	private function SendHttpRequest($url, $postField, $httpHeader = array(), &$responseHeader = '', &$requestHeader = '') {
 
-        if (empty($httpHeader)) {
-            $httpHeader = array(
-                "Content-Type: application/json",
-                "Authorization: Bearer ".$this->access_token
-            );
-        }
+        $httpHeader = array(
+            "Content-Type: application/json",
+            "Authorization: Bearer " . $this->access_token
+        ) + $httpHeader;
 
 		$curl = curl_init();
 		curl_setopt_array($curl, array(
@@ -264,17 +448,26 @@ class RapixWebAPIAdapter {
             CURLOPT_TIMEOUT => 30,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_CUSTOMREQUEST => (empty($postField) ? 'GET' : "POST"),
             CURLOPT_POSTFIELDS => $postField,
-            CURLOPT_HTTPHEADER => $httpHeader
+            CURLOPT_HTTPHEADER => $httpHeader,
+            // 告知curl取得送出的表頭
+            CURLINFO_HEADER_OUT => true,
+            CURLOPT_HEADER  => true,
 		));
-		$response = curl_exec($curl);
+		$responseRaw = curl_exec($curl);
 
         // Check if any error occurred
         if (curl_errno($curl)) {
             echo 'Curl error: ' . curl_error($curl);
         }
 
+        // header and body
+        $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+        $response = substr($responseRaw, $header_size);
+        $responseHeader = substr($responseRaw, 0, $header_size); // 接收的表頭
+        $requestHeader = curl_getinfo($curl, CURLINFO_HEADER_OUT); // 送出的表頭
+        
 		curl_close($curl);
 
 		return $response;
