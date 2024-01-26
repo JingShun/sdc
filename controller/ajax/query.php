@@ -113,6 +113,13 @@ switch($type){
             twcc_server.public_ip, twcc_server.public_ip_name,
             twcc_server.waf_id, twcc_server.waf_hostname";
 
+        // 緩解因public_ip、private_ip欄位同時出現在不同資料表的錯誤
+        if (empty($jsonConditions) && $key != 'any' && $keyword != 'all') {
+            $jsonConditions[] = [
+                'key' => $key,
+                'keyword' => $keyword,
+            ];
+        }
         if (!empty($jsonConditions)) {
             // reset field name
             foreach ($jsonConditions as &$value) {
