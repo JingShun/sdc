@@ -23,7 +23,7 @@
                                     <option value="network_name">內部網段名稱</option>
                                     <option value="os_type">os類型</option>
                                     <option value="os_version">os版本</option>
-                                    <option value="all">全部</option>
+                                    <!-- <option value="all">全部</option> -->
                                 </select>
                             </div>
                             <div class="field">
@@ -42,9 +42,9 @@
                             <div class="field">
                                 <button type="button" id="show_all_btn" class="ui button" onclick="location.href='/twcc/server/'">顯示全部</button>
                             </div>
-                            <!-- <div class="field">
+                            <div class="field">
                                 <button type="button" id="export2csv_btn" class="ui button">匯出</button>
-                            </div> -->
+                            </div>
                         </div>
                     </form>
                     <div class="record_content"></div> <!-- end of #record_content-->

@@ -43,7 +43,7 @@ $(document).ready(function(){
 	});
 
 	// query.php's component action
-	$('.post.event .record_content, .post.ncert .record_content, .post.contact .record_content, .post.client, .post.twcc_fw .record_content').on('click', '.ui.pagination.menu > .item', function(e) {
+	$('.post.event .record_content, .post.ncert .record_content, .post.contact .record_content, .post.client, .post.twcc_server .record_content, .post.twcc_fw .record_content').on('click', '.ui.pagination.menu > .item', function(e) {
         var record = $(this).closest('.record_content');
         var page =  $(this).attr('page'); 
         var parameter = [	
@@ -281,13 +281,13 @@ $(document).ready(function(){
 	});
 
 	// query.php's component action
-	$('.post.client .query_content, .post.scanResult .query_content, .post.network .query_content, .post.twcc_server, .post.twcc_fw .query_content').on('click', 'button.close', function() {
+	$('.post.client .query_content, .post.scanResult .query_content, .post.network .query_content, .post.twcc_server .query_content, .post.twcc_fw .query_content').on('click', 'button.close', function() {
 		var query_label = $(this).parent('.query_label');
 		query_label.remove();
 	});
 
 	/*vul.php's component action*/
-	$('.post.client i.square.icon, .post.scanResult i.square.icon, .post.twcc_server, .post.twcc_fw i.square.icon').on('click', function() {
+	$('.post.client i.square.icon, .post.scanResult i.square.icon, .post.twcc_server i.square.icon, .post.twcc_fw i.square.icon').on('click', function() {
 		var type = $(this).closest('.post').attr('class').split(' ')[1];
 		var selector = ".post." + type + " ";
 		if(type == 'client') {
@@ -359,6 +359,11 @@ $(document).ready(function(){
 	$('.post.scanResult #export2csv_btn').on('click', function(){
         var parameter = {type: 'scanResult', ap: 'csv', partial: true};
 		vul_query_ajax(parameter);
+	});
+
+	$('.post.twcc_server #export2csv_btn').on('click', function(){
+        var parameter = {type: 'twcc_server', ap: 'csv', partial: true};
+		query_ajax(parameter);
 	});
 
 	$('.post.twcc_fw #export2csv_btn').on('click', function(){

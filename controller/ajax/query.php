@@ -811,7 +811,7 @@ if ($ap=='csv') {
                         <a>
                             <i class="<?= $fw['firewall_status'] == 'ACTIVE' ? 'green circle icon' : 'circle outline icon' ?>"></i>
                             <i class="<?= $fw['network_status'] == 'ACTIVE' ? 'green circle icon' : 'circle outline icon' ?>"></i>
-                            <?= $fw['firewall_name'] ?>&nbsp;&nbsp;
+                            <?= $fw['firewall_name'] ?: 'n/a' ?>&nbsp;&nbsp;
                             <?= $fw['firewall_desc'] ?>&nbsp;&nbsp;
                             <?= $fw['protocol'] ?>&nbsp;&nbsp;
                             <span style='background:#fbc5c5'><?= $fw['source_ip_address'] ?: 'any' ?></span>&nbsp;&nbsp;
@@ -824,7 +824,7 @@ if ($ap=='csv') {
                         </a>
                         <div class='description'>
                             <ol>
-                                <li>FW名稱: <?= $fw['firewall_name'] ?></li>
+                                <li>FW名稱: <?= $fw['firewall_name'] ?: 'n/a' ?></li>
                                 <li>FW狀態: <?= $fw['firewall_status'] ?></li>
                                 <li>FW描述: <?= $fw['firewall_desc'] ?></li>
                                 <li>規則順序: <?= $fw['firewall_rule_order'] ?></li>
