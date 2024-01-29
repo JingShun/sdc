@@ -137,6 +137,28 @@ switch($type){
         }
 
 		break;
+    case 'twcc_fw':
+        $condition_table = "twcc_firewall";
+        $table = "twcc_firewall LEFT JOIN ( SELECT firewall_id,network_id,network_name,cidr,status AS network_status FROM twcc_network ) t1 ON twcc_firewall.firewall_id = t1.firewall_id AND t1.firewall_id!=0";
+        $order_by = "twcc_firewall.firewall_name DESC, twcc_firewall.firewall_rule_order";
+        $select = "twcc_firewall.firewall_id,
+            twcc_firewall.firewall_name,
+            twcc_firewall.firewall_status,
+            twcc_firewall.firewall_desc,
+            twcc_firewall.firewall_rule_id,
+            twcc_firewall.firewall_rule_order,
+            twcc_firewall.firewall_rule_name,
+            twcc_firewall.protocol,
+            twcc_firewall.source_ip_address,
+            twcc_firewall.source_port,
+            twcc_firewall.destination_ip_address,
+            twcc_firewall.destination_port,
+            twcc_firewall.action,
+            t1.network_id,
+            t1.network_name,
+            t1.cidr,
+            t1.network_status";
+        break;
 	default:
         echo "no target type";
         return;
@@ -217,6 +239,15 @@ if ($ap=='csv') {
 		case 'antivirus': 
 			break;
         case 'twcc_server': 
+        case 'twcc_fw': 
+			foreach($total_entries as $entry) {
+                $arr = array();
+				foreach($entry as $key => $val){
+					$arr[$key] = $val;
+				}
+				array_push($arrs,$arr);	
+			}
+			array_to_csv_download($arrs, "export.csv", ";"); 	
             break;
 	}
 } elseif($ap=='html') { 
@@ -768,7 +799,54 @@ if ($ap=='csv') {
                 <script>$('.ui.accordion').accordion('refresh');</script>
                 </div>
                 <?php break; ?>
+            <?php case "twcc_fw": ?>
+                <?php
+                ?>
+                
+                <div class='ui relaxed divided list'>
+                FW狀態 / 網段狀態 / FW名稱 / 描述 / 協定 / <span style='background:#fbc5c5'>來源</span> / 來源Port / <span style='background:#DDDDDD'>目的</span> / 目的Port / <span style='background:#fde087'>動作</span> / 網段名稱
+                <?php foreach($entries->data as $fw): ?>
+                    <div class='item'>
+                        <div class='content'>
+                        <a>
+                            <i class="<?= $fw['firewall_status'] == 'ACTIVE' ? 'green circle icon' : 'circle outline icon' ?>"></i>
+                            <i class="<?= $fw['network_status'] == 'ACTIVE' ? 'green circle icon' : 'circle outline icon' ?>"></i>
+                            <?= $fw['firewall_name'] ?>&nbsp;&nbsp;
+                            <?= $fw['firewall_desc'] ?>&nbsp;&nbsp;
+                            <?= $fw['protocol'] ?>&nbsp;&nbsp;
+                            <span style='background:#fbc5c5'><?= $fw['source_ip_address'] ?: 'any' ?></span>&nbsp;&nbsp;
+                            <?= $fw['source_port'] ?: 'any' ?>&nbsp;&nbsp;
+                            <span style='background:#DDDDDD'><?= $fw['destination_ip_address'] ?: 'any' ?></span>&nbsp;&nbsp;
+                            <?= $fw['destination_port'] ?: 'any' ?>&nbsp;&nbsp;
+                            <span style='background:#fde087'><?= $fw['action']  ?></span>&nbsp;&nbsp;
+                            <?= $fw['network_name'] ?>&nbsp;&nbsp;
+                            <i class='angle down icon'></i>
+                        </a>
+                        <div class='description'>
+                            <ol>
+                                <li>FW名稱: <?= $fw['firewall_name'] ?></li>
+                                <li>FW狀態: <?= $fw['firewall_status'] ?></li>
+                                <li>FW描述: <?= $fw['firewall_desc'] ?></li>
+                                <li>規則順序: <?= $fw['firewall_rule_order'] ?></li>
+                                <li>規則名稱: <?= $fw['firewall_rule_name'] ?></li>
+                                <li>protocol: <?= $fw['protocol'] ?></li>
+                                <li>來源IP: <?= $fw['source_ip_address'] ?: 'any' ?></li>
+                                <li>來源Port: <?= $fw['source_port'] ?: 'any' ?></li>
+                                <li>目的IP: <?= $fw['destination_ip_address'] ?: 'any' ?></li>
+                                <li>目的Port: <?= $fw['destination_port'] ?: 'any' ?></li>
+                                <li>動作: <?= $fw['action'] ?></li>
+                                <li>網段名稱: <?= $fw['network_name'] ?></li>
+                                <li>網段狀態: <?= $fw['network_status'] ?></li>
+                                <li>cidr: <?= $fw['cidr'] ?></li>
 
+                            </ol>
+                        </div>
+                        </div>
+                    </div>
+                <?php endforeach ?>
+                <script>$('.ui.accordion').accordion('refresh');</script>
+                </div>
+                <?php break; ?>
 		<?php endswitch ?>
 		<?=$Paginator->createLinks($links, 'ui pagination menu', $pageAttr, $method='ajax')?>
     <?php endif ?>
