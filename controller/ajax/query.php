@@ -804,7 +804,7 @@ if ($ap=='csv') {
                 ?>
                 
                 <div class='ui relaxed divided list'>
-                FW狀態 / 網段狀態 / FW名稱 / 描述 / 協定 / <span style='background:#fbc5c5'>來源</span> / 來源Port / <span style='background:#DDDDDD'>目的</span> / 目的Port / <span style='background:#fde087'>動作</span> / 網段名稱
+                FW狀態 / 網段狀態 / FW名稱 / 描述 / 順序 / 協定 / <span style='background:#fbc5c5'>來源</span> / 來源Port / <span style='background:#DDDDDD'>目的</span> / 目的Port / <span style='background:#fde087'>動作</span> / 網段名稱
                 <?php foreach($entries->data as $fw): ?>
                     <div class='item'>
                         <div class='content'>
@@ -813,6 +813,7 @@ if ($ap=='csv') {
                             <i class="<?= $fw['network_status'] == 'ACTIVE' ? 'green circle icon' : 'circle outline icon' ?>"></i>
                             <?= $fw['firewall_name'] ?: 'n/a' ?>&nbsp;&nbsp;
                             <?= $fw['firewall_desc'] ?>&nbsp;&nbsp;
+                            <?= $fw['firewall_name'] ? $fw['firewall_rule_order'] + 1 : 0 ?>&nbsp;&nbsp;
                             <?= $fw['protocol'] ?>&nbsp;&nbsp;
                             <span style='background:#fbc5c5'><?= $fw['source_ip_address'] ?: 'any' ?></span>&nbsp;&nbsp;
                             <?= $fw['source_port'] ?: 'any' ?>&nbsp;&nbsp;
