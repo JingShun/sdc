@@ -20,8 +20,8 @@
                                     <option value="twcc_firewall.protocol">協定</option>
                                     <option value="twcc_firewall.source_ip_address">來源IP</option>
                                     <option value="twcc_firewall.source_port">來源Port</option>
-                                    <option value="twcc_firewall.destination_ip_address">內部IP</option>
-                                    <option value="twcc_firewall.destination_port">內部Port</option>
+                                    <option value="twcc_firewall.destination_ip_address">目標IP</option>
+                                    <option value="twcc_firewall.destination_port">目標Port</option>
                                     <option value="twcc_firewall.action">動作</option>
                                     <option value="cidr">CIDR</option>
                                     <!-- <option value="all">全部</option> -->
