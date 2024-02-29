@@ -215,6 +215,12 @@ $(document).ready(function(){
                     var content = $(square_icon).siblings('.content');
                     ldap_tainancomputers_ajax(square_icon, content);
                 }
+            } else if (tree_content.hasClass('ldap_vpns')) {
+                if (!square_icon.hasClass('created')) {
+                    $(square_icon).addClass('created');
+                    var content = $(square_icon).siblings('.content');
+                    ldap_vpns_ajax(square_icon, content);
+                }
             }
 		}else{
 			item.addClass('hide');
@@ -230,7 +236,7 @@ $(document).ready(function(){
 	});
 
 	// ldap_tree.php's component action
-	$('.ldap_tree_content').on('click', '.user.item', function() {
+	$('.ldap_tree_content').on('click', '.user.item, .vpn.item', function() {
 		$('.ldap_tree_content .selected').removeClass('selected');
 		$(this).addClass('selected');
 	});
@@ -452,6 +458,28 @@ $(document).ready(function(){
     // LDAP modal
 	$('.post_cell.ldap_computers').on( 'click', '.edit_btn' ,function(){
 	    var item = $(this).closest('.ldap_computers').find('.computer.item.selected'); 
+        var cn = $(item).attr('cn');
+        var uac = $(item).attr('uac');
+        var selector = ".ui.modal ";
+        
+        $(selector + 'form input[name=cn]').val(cn);
+        $(selector + 'form span[name=cn]').text(cn);
+        $(selector + 'form input[name=isActive]').prop("checked", uac);
+
+        $(selector).modal({
+            closable  : false,
+            onDeny    : function(){
+            },
+            onApprove : function() {
+              $(selector + 'form').submit();
+            }
+        })
+        .modal('show');
+	});
+
+    // LDAP modal
+	$('.post_cell.ldap_vpns').on( 'click', '.edit_btn' ,function(){
+	    var item = $(this).closest('.ldap_vpns').find('.vpn.item.selected'); 
         var cn = $(item).attr('cn');
         var uac = $(item).attr('uac');
         var selector = ".ui.modal ";
@@ -1151,6 +1179,31 @@ function ldap_tainanlocalusers_ajax(icon, content) {
     });
 }
 
+function ldap_vpns_ajax(icon, content) {
+	var url = location.origin + '/';
+    var input = [	
+        {name : "base", value: $(icon).attr('base')},
+        {name : "ou", value: $(icon).attr('ou')},
+        {name : "description", value: $(icon).attr('description')}
+    ];
+
+    $(content).append('<div class="ui active inline loader"></div>');
+	$.ajax({
+		 url: url + 'ajax/ldap_vpns/',
+		 cache: false,
+		 dataType:'html',
+		 type:'GET',
+         data: input,
+	})
+    .done(function(data) {
+        $(content).children('.ui.inline.loader').removeClass('active');
+        $(content).append(data);
+    })
+    .fail(function(jqXHR) {
+        ajax_check_user_logged_out(jqXHR);
+    });
+}
+
 function hydra_ajax(type) {
 	var selector = ".post."+type+" ";
 	$(selector + '.ui.inline.loader').addClass('active');
@@ -1211,12 +1264,16 @@ function nslookup_ajax(type) {
 function ldap_ajax(action) {
 	var selector = ".post_cell.ldap ";
 
+    console.log("action: " + action);
+
+
     if (action == "bind_item") {
         var showTab = $('.post.ldap .tab-content.show'); 
         var showTabClass = showTab.attr('class').split(' ')[1];
         console.log(showTabClass);
-        var bindItems = ['ldap_tainanlocalusers', 'ldap_tainancomputers', 'ldap_computers'];
+        var bindItems = ['ldap_tainanlocalusers', 'ldap_tainancomputers', 'ldap_computers', 'ldap_vpns'];
         var bindItemsIndex = bindItems.indexOf(showTabClass);
+    console.log("bindItemsIndex: " + bindItemsIndex);
         var object = showTab.find('.selected');
 
         if(object.length === 0) {
@@ -1262,6 +1319,24 @@ function ldap_ajax(action) {
         } else if (bindItemsIndex == 2) {
             ldap_modal(showTab);
             return;
+        }
+		else if (bindItemsIndex == 3) {
+			objectCategory_array.forEach(function(item) {
+    console.log("item: " + item);
+				if (item == 'vpn') {
+                    input = [	
+                        {name : "objectCategory", value: "vpn"},
+                        {name : "target", value: object.attr('cn')},
+                        {name : "action", value: "bind_vpn"}
+                    ];
+                } else if (item == 'ou') {
+                    input = [	
+                        {name : "objectCategory", value: "ou"},
+                        {name : "target", value: object.attr('ou')},
+                        {name : "action", value: "bind_ou"}
+                    ];
+                }
+			});
         }
     } else {
         input = $(selector + '> form').serializeArray();

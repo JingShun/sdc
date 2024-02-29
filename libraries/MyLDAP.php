@@ -318,6 +318,94 @@ class MyLDAP {
         return $html;
     }
 
+    public function createSingleLevelVpnTree($base, $ou ,$description) {
+        $html = "";
+        $user_show_records = 3;
+
+        // user
+        $data_array = array();
+        $data_array['base'] = $base;
+        $data_array['filter'] = "(objectCategory=person)";
+        $data_array['attributes'] = array("cn", "useraccountcontrol", "displayname");
+        $user_list = $this->getList($data_array);
+    
+        if (!empty($user_list)) {
+            $user_count = count($user_list);
+            $html .= "<div class='list'>";
+                $html .= "<div class='item'><i class='icon caret right'></i>共 " . $user_count . " 筆資料 !</div>";
+                foreach($user_list as $user_index => $user) {
+                    if (isDisabled($user['useraccountcontrol'])) {
+                        $uac = false;
+                        $uac_status = "__已停用";
+                        $user_icon = "<i class='user icon'></i>";
+                    } else {
+                        $uac = true;
+                        $uac_status = "";
+                        $user_icon = "<i class='blue user icon'></i>";
+                    }
+                    $displayname = empty($user['displayname']) ? "" : "(" . $user['displayname'] . ")";
+
+                    if($user_index < $user_show_records) {
+                        $html .= "<div class='vpn item' cn='" . $user['cn'] . "' uac='" . $uac . "'>";
+                    } else if($user_index == $user_show_records) { 
+                        $html .= "<i class='ellipsis horizontal icon'></i>";
+                        $html .= "<div class='foldable vpn item' cn='" . $user['cn'] . "' uac='" . $uac . "'>";
+                    } else {
+                        $html .= "<div class='foldable vpn item' cn='" . $user['cn'] . "' uac='" . $uac . "'>";
+                    }		
+                        $html .= $user_icon . "&nbsp;";
+                        $html .= $user['cn'];
+                        $html .= $displayname;
+                        $html .= $uac_status;
+                    $html .= "</div>";
+                }
+            $html .= "</div>";
+        }
+
+        // ou
+        $data_array = array();
+        $data_array['base'] = $base;
+        $data_array['filter'] = "(objectCategory=organizationalUnit)";
+        $data_array['attributes'] = array("ou", "distinguishedname", "description");
+        $ou_list = $this->getList($data_array);
+
+        if (!empty($ou_list)) {
+            $html .= "<div class='list'>";
+                foreach($ou_list as $entry) {
+                    $base = $entry['distinguishedname'];
+                    $ou = $entry['ou'];
+                    $description = empty($entry["description"]) ?  "" : $entry["description"];
+                    $text_description = empty($entry["description"]) ?  "" : "(" . $entry["description"] . ")";
+
+                    $data_array = array();
+                    $data_array['base'] = $base;
+                    $data_array['filter'] = "(objectCategory=*)";
+                    $data_array['attributes'] = array("distinguishedname");
+                    $list = $this->getList($data_array);
+
+                    if (empty($list)) {
+                        $html .= "<div class='item'>";
+                            $html .= "<i class='folder icon'></i>";
+                            $html .= "<div class='content'>";
+                                $html .= "<div class='ou header' ou='user " . $ou . "'>" . $ou . $text_description . "</div>";	
+                            $html .= "</div>";
+                        $html .= "</div>";
+                    } else {
+                        $html .= "<div class='item'>";
+                            $html .= "<i class='plus square outline icon' base='" . $base . "' ou='" . $ou . "' description='" . $description . "'></i>";
+                            $html .= "<i class='folder icon'></i>";
+                            $html .= "<div class='content'>";
+                                $html .= "<div class='ou header' ou='user " . $ou . "'>" . $ou . $text_description . "</div>";	
+                            $html .= "</div>";
+                        $html .= "</div>";
+                    }
+                }
+                $html .= "</div>";
+            }
+
+        return $html;
+    }
+
     public function getAllComputersByRecursion($base, $ou ,$description) {
 
         $computer_array = array();

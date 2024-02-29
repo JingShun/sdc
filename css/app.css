@@ -323,12 +323,12 @@ i.icon.caret, i.icon.square, i.icon.edit{
 
 }
 
-.ui.list .computer.item:hover, .ui.list .user.item:hover, .ui.list .ou.header:hover{
+.ui.list .computer.item:hover, .ui.list .user.item:hover, .ui.list .ou.header:hover, .ui.list .vpn.item:hover{
     background: #ebedf2;
     cursor: pointer;
 }
 
-.ui.list .computer.item.selected, .ui.list .user.item.selected, .ui.list .ou.header.selected{
+.ui.list .computer.item.selected, .ui.list .user.item.selected, .ui.list .ou.header.selected, .ui.list .vpn.item.selected{
     background: #bec1c7;
 }
 
