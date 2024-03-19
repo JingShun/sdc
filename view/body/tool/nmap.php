@@ -30,6 +30,7 @@
 									  <li>nmap -sV --script ssl-enum-ciphers,ssl-cert -p 443 &lthost&gt</li>
 									  <li>nmap --script=vuln &lthost&gt</li>
 									  <li>nmap --script=default &lthost&gt</li>
+									  <li>nmap -T4 -Pn &lthost&gt</li>
 									</ul>
 							  	</div>
 							</form>
