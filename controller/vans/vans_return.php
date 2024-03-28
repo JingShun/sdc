@@ -2,7 +2,7 @@
 $sql = "SELECT
     nics_vans_unit_summary.unit_name,
     nics_vans_unit_summary.unit_level,
-    if(actionDescr IS NOT NULL, if(substring(actionDescr,3,4)='KBID','KBID','CPE'), null) AS type,
+    if(actionDescr IS NOT NULL, if(locate('KBID',actionDescr)>0,'KBID','CPE'), null) AS type,
     SUBSTRING_INDEX(SUBSTRING_INDEX(actionDescr, ' [',1),') ',-1) AS asset_type,
     SUBSTRING_INDEX(SUBSTRING_INDEX(actionDescr, ')',1),'(',-1) AS upload_type,
     GROUP_CONCAT(DISTINCT SUBSTRING_INDEX(SUBSTRING_INDEX(actionDescr, ']',1),'[',-1)) AS target_unit,
@@ -18,6 +18,7 @@ $sql = "SELECT
     ";
 $nicsUnitLog = $db->execute($sql);
 
+$nicsOuUpdatedAt = 0;
 $nicsOuRows = array();
 foreach ($nicsUnitLog as $log) {
     if (!isset($nicsOuRows[$log['unit_name']])) {
@@ -40,6 +41,9 @@ foreach ($nicsUnitLog as $log) {
         continue;
     }
 
+    if ($log['updated_at'] > $nicsOuUpdatedAt)
+        $nicsOuUpdatedAt = $log['updated_at'];
+
     $field = $log['asset_type'] . $log['type'];
     $value = implode(
         ', ',
@@ -61,33 +65,35 @@ foreach ($nicsUnitLog as $log) {
 
 
 $rapixOULog = array();
-// $sql = "SELECT
-//         vans_unit_name,
-//         'cpe' as type,
-//         SUBSTRING_INDEX(SUBSTRING_INDEX(vans_url,'Insert',-1), 'Unit', 1) AS asset_type,
-//         vans_return_code AS return_code,
-//         max(vans_return_at) AS return_at,
-//         CONCAT(DATE_FORMAT(max(vans_return_at),'%m/%d'), ' ' ,vans_return_code, ' (', count(1) ,') ') AS msg
-//     FROM `rapix_ou`
-//     WHERE  vans_unit_name IS NOT NULL AND vans_unit_name <> '' AND vans_return_code <> '' AND vans_return_at > DATE_SUB(NOW(),INTERVAL 31 day)
-//     GROUP BY vans_unit_name, vans_url, vans_return_code
-//     UNION
-//     SELECT
-//         vans_unit_name,
-//         'kb' as type,
-//         SUBSTRING_INDEX(SUBSTRING_INDEX(vans_kburl,'Insert',-1), 'Unit', 1) AS asset_type,
-//         CONCAT(vans_kb_return_code,' (', count(1), ')') AS kb_return_code,
-//         max(vans_kb_return_at)AS kb_return_at,
-//         CONCAT(DATE_FORMAT(max(vans_kb_return_at), '%m/%d'), ' ' , vans_kb_return_code, ' (' ,count(1) ,') ') AS kb_msg
-//     FROM `rapix_ou`
-//     WHERE  vans_unit_name IS NOT NULL AND vans_unit_name <> '' AND vans_kb_return_code <> ''
-//     AND vans_kb_return_at > DATE_SUB(NOW(),INTERVAL 31 day)
-//     GROUP BY vans_unit_name, vans_kburl, vans_kb_return_code";
+$sql = "SELECT
+        vans_unit_name,
+        'cpe' as type,
+        SUBSTRING_INDEX(SUBSTRING_INDEX(vans_url,'Insert',-1), 'Unit', 1) AS asset_type,
+        vans_return_code AS return_code,
+        max(vans_return_at) AS return_at,
+        CONCAT(DATE_FORMAT(max(vans_return_at),'%m/%d'), ' ' ,vans_return_code, ' (', count(1) ,') ') AS msg,
+        max(updated_at) AS updated_at
+    FROM `rapix_ou`
+    WHERE  vans_unit_name IS NOT NULL AND vans_unit_name <> '' AND vans_return_code <> '' AND vans_return_at > DATE_SUB(NOW(),INTERVAL 31 day)
+    GROUP BY vans_unit_name, vans_url, vans_return_code
+    UNION
+    SELECT
+        vans_unit_name,
+        'kb' as type,
+        SUBSTRING_INDEX(SUBSTRING_INDEX(vans_kburl,'Insert',-1), 'Unit', 1) AS asset_type,
+        CONCAT(vans_kb_return_code,' (', count(1), ')') AS kb_return_code,
+        max(vans_kb_return_at)AS kb_return_at,
+        CONCAT(DATE_FORMAT(max(vans_kb_return_at), '%m/%d'), ' ' , vans_kb_return_code, ' (' ,count(1) ,') ') AS kb_msg,
+        max(updated_at) AS updated_at
+    FROM `rapix_ou`
+    WHERE  vans_unit_name IS NOT NULL AND vans_unit_name <> '' AND vans_kb_return_code <> ''
+    AND vans_kb_return_at > DATE_SUB(NOW(),INTERVAL 31 day)
+    GROUP BY vans_unit_name, vans_kburl, vans_kb_return_code";
 
-
-// $rapixOULog = $db->execute($sql);
+$rapixOULog = $db->execute($sql);
 
 $rapixOuRows = array();
+$rapixOuUpdatedAt = 0;
 foreach ($rapixOULog as $log) {
     if (!isset($rapixOuRows[$log['vans_unit_name']])) {
         $rapixOuRows[$log['vans_unit_name']] = array(
@@ -101,26 +107,30 @@ foreach ($rapixOULog as $log) {
             'systemKBID' => [],
             'systemKBID_warning' => false,
         );
+    }
 
-        $dateDifference = abs(time() - strtotime($log['return_at'])) / (60 * 60 * 24);
-        $warning = $dateDifference >= 30;
+    if ($log['updated_at'] > $rapixOuUpdatedAt) {
+        $rapixOuUpdatedAt = $log['updated_at'];
+    }
 
-        if ($log['type'] == 'kb' && $log['asset_type'] == 'Computer') {
-            $rapixOuRows[$log['vans_unit_name']]['userKBID'][] = $log['msg'];
-            $rapixOuRows[$log['vans_unit_name']]['userKBID_warning'] |= $warning;
-        }
-        if ($log['type'] == 'cpe' && $log['asset_type'] == 'Computer') {
-            $rapixOuRows[$log['vans_unit_name']]['userCPE'][] = $log['msg'];
-            $rapixOuRows[$log['vans_unit_name']]['userCPE_warning'] |= $warning;
-        }
-        if ($log['type'] == 'kb' && $log['asset_type'] == 'System') {
-            $rapixOuRows[$log['vans_unit_name']]['systemKBID'][] = $log['msg'];
-            $rapixOuRows[$log['vans_unit_name']]['systemKBID_warning'] |= $warning;
-        }
-        if ($log['type'] == 'cpe' && $log['asset_type'] == 'System') {
-            $rapixOuRows[$log['vans_unit_name']]['systemCPE'][] = $log['msg'];
-            $rapixOuRows[$log['vans_unit_name']]['systemCPE_warning'] |= $warning;
-        }
+    $dateDifference = abs(time() - strtotime($log['return_at'])) / (60 * 60 * 24);
+    $warning = $dateDifference >= 30;
+
+    if ($log['type'] == 'kb' && $log['asset_type'] == 'Computer') {
+        $rapixOuRows[$log['vans_unit_name']]['userKBID'][] = $log['msg'];
+        $rapixOuRows[$log['vans_unit_name']]['userKBID_warning'] |= $warning;
+    }
+    if ($log['type'] == 'cpe' && $log['asset_type'] == 'Computer') {
+        $rapixOuRows[$log['vans_unit_name']]['userCPE'][] = $log['msg'];
+        $rapixOuRows[$log['vans_unit_name']]['userCPE_warning'] |= $warning;
+    }
+    if ($log['type'] == 'kb' && $log['asset_type'] == 'System') {
+        $rapixOuRows[$log['vans_unit_name']]['systemKBID'][] = $log['msg'];
+        $rapixOuRows[$log['vans_unit_name']]['systemKBID_warning'] |= $warning;
+    }
+    if ($log['type'] == 'cpe' && $log['asset_type'] == 'System') {
+        $rapixOuRows[$log['vans_unit_name']]['systemCPE'][] = $log['msg'];
+        $rapixOuRows[$log['vans_unit_name']]['systemCPE_warning'] |= $warning;
     }
 }
 $rapixOuRows_num = $db->getLastNumRows();
