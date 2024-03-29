@@ -422,6 +422,11 @@ $(document).ready(function(){
 		ldap_ajax('new_user');	
 	});
 
+	// LDAP VPN newvpn
+	$('.post_cell.ldap #ldap_newvpn_btn').on('click', function(){
+		ldap_ajax('new_vpn');	
+	});
+
 	// LDAP newou
 	$('.post_cell.ldap #ldap_newou_btn').on('click', function(){
 		ldap_ajax('new_ou');	
@@ -695,6 +700,23 @@ function do_ldap_ajax(form) {
 			break;
 		case 'newou':
 			var requirement = ['upperou', 'name', 'description'];
+			console.log(requirement);
+			var v = 0;
+			input.forEach(function(item, index, array) {
+				if(requirement.indexOf(item.name) >= 0 && item.value == ""){
+					v = 1;
+				}
+			});
+			
+			if(v == 1){		
+				alert('您有必填欄位未輸入');
+				return ;
+			}
+			break;
+		case 'editvpn':
+			break;
+		case 'newvpn':
+			var requirement = ['cn', 'new_password', 'confirm_password', 'displayname', 'mail']; // 'title', 'moveOU', 
 			console.log(requirement);
 			var v = 0;
 			input.forEach(function(item, index, array) {

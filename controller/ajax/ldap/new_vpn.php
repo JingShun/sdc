@@ -9,11 +9,11 @@ $data_ou = $ld->getData($data_array);
 ?>
 
 <form id='form-ldap' class='ui form' action='javascript:void(0)'>
-<h4 class='ui dividing header'>New User Information</h4>
+<h4 class='ui dividing header'>New VPN Information</h4>
 <div class='inline fields'>
     <div class='twelve wide field'>
     Setting
-    <input type='hidden' name='type' value='newuser' >
+    <input type='hidden' name='type' value='newvpn' >
     </div>
     <div class='two wide field'>
         <button id='ldap_clear_btn' class='ui button'>Cancel</button>
@@ -22,6 +22,7 @@ $data_ou = $ld->getData($data_array);
         <button id='ldap_save_btn' class='ui button'>Save</button>
     </div>
 </div>
+<!--
 <div class='field'>
     <label>單位<font color='red'>*</font></label>
     <input list='brow' name='moveOU' placeholder='請選擇ou'>
@@ -34,7 +35,7 @@ $data_ou = $ld->getData($data_array);
             <?php endif ?>	
         <?php endforeach ?>
     </datalist>
-</div>
+</div> -->
 <div class='field'>
     <label>
         帳號<font color='red'>*</font>
@@ -78,5 +79,9 @@ $data_ou = $ld->getData($data_array);
 <div class='field'>
     <label>分機</label>
     <input type='text' name='physicaldeliveryofficename' placeholder='分機'>
+</div>
+<div class='field'>
+    <label>描述</label>
+    <input type='text' name='description' placeholder='描述'>
 </div>
 </form>

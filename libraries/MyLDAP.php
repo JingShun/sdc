@@ -605,6 +605,24 @@ class MyLDAP {
             echo "There was a problem!" . PHP_EOL;
         }
     }
+    
+    public function addVPNUser($user_attributes) {
+        $user_dn = "CN={$user_attributes['cn']},OU=VPN,DC=tainan,DC=gov,DC=tw";
+        $result = ldap_add($this->ldapconn, $user_dn, $user_attributes);
+		if ($result) {
+            echo "VPN User created!" . PHP_EOL;
+		} else {
+            echo "There was a problem! " . PHP_EOL;
+            
+            echo  $user_dn ."<br>". PHP_EOL;
+            echo  json_encode($user_attributes, JSON_UNESCAPED_UNICODE) ."<br>". PHP_EOL;
+
+            echo "ldap_error: " . ldap_error($this->ldapconn) ."<br>". PHP_EOL;
+            ldap_get_option($this->ldapconn, LDAP_OPT_DIAGNOSTIC_MESSAGE, $err);
+            echo "ldap_get_option: $err" ."<br>". PHP_EOL;
+            
+        }
+    }
 
 }
 

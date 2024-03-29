@@ -51,6 +51,13 @@ switch ($type) {
         echo createWebadMessageBox($res, "insertUser");
 		$userAction->logger('callFunction', 'ad/new_user(username=' . $cn . ')res=' . $res);
 		break;
+	case "newvpn":
+		echo createWebadMessageBox($res = "功能尚未實作", "insertUser");
+		if ($new_password !== $confirm_password) {
+			echo createWebadMessageBox($res = "兩次輸入密碼不同", "insertUser");
+			return ;
+		}
+		break;
 	case "changecomputer":
 		if (!empty($isActive)) {
 			$res = $ad->changeState($cn, 'false', $isActive, 'false');

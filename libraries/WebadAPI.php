@@ -28,9 +28,9 @@ class WebadAPI {
     }
 
     // insert domain user
-    public function insertUser($cn, $pass, $displayname, $title, $telephonenumber, $physicaldeliveryofficename, $mail, $ou){
+    public function insertUser($cn, $pass, $displayname, $title, $telephonenumber, $physicaldeliveryofficename, $mail, $ou, $dn = null){
         $url = $this->host . "/api/NewUser";
-        $postField = json_encode(array(
+        $postField = array(
             "Username" => $cn,
             "Password" => $pass,
             //"NewPassword" => $newpass,
@@ -40,7 +40,10 @@ class WebadAPI {
             "Tel_Extension" => $physicaldeliveryofficename,
             "Email" => $mail,
             "OU" => $ou
-        ));
+        );
+        if(!empty($dn))
+            $postField['DN'] = $dn;
+        $postField = json_encode($postField);
 	    $response = $this->sendHttpRequest($url, $postField);
         return $response;
     }

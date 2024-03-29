@@ -26,8 +26,8 @@
                                 </button>
                             </div>
                             <div class="field">
-                                <button type="button" id="ldap_newuser_btn" class="ui button disabled">
-                                    <i class="user icon"></i>New User
+                                <button type="button" id="ldap_newvpn_btn" class="ui button disabled">
+                                    <i class="user icon"></i>New VPN
                                 </button>
                             </div>
                             <div class="field">
