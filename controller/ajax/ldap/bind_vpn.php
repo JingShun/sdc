@@ -46,7 +46,7 @@ $input_array = array("displayname", "title", "mail", "telephonenumber", "physica
             <div class='six wide field'>
                 <?=$user_icon?>
                 <?=$entry['cn'] . $displayname . $uac_text?>
-                <input type='hidden' name='type' value='edituser' >
+                <input type='hidden' name='type' value='editvpn' >
                 <input type='hidden' name='cn' value='<?=$entry['cn']?>' >
                 <?php if(!empty($entry['lockouttime'])): ?>
                     &nbsp;<i class='red lock icon'></i>鎖定
@@ -88,21 +88,15 @@ $input_array = array("displayname", "title", "mail", "telephonenumber", "physica
             <input type='password' name='confirm_password' placeholder='確認密碼'>
         </div>
         <div class='field'>
-            <label>
-               姓名<font color='red'>*</font>
-            </label>
+            <label>姓名</label>
             <input type='text' name='displayname' value='<?=$value_array['displayname']?>' placeholder='姓名' required>
         </div>
         <div class='field'>
-            <label>
-               職稱<font color='red'>*</font>
-            </label>
+            <label>職稱</label>
             <input type='text' name='title' value='<?=$value_array['title']?>' placeholder='職稱' required>
         </div>
         <div class='field'>
-            <label>
-               mail<font color='red'>*</font>
-            </label>
+            <label>mail</label>
             <input type='text' name='mail' value='<?=$value_array['mail']?>' placeholder='mail' required>
         </div>
         <div class='field'>
@@ -112,6 +106,10 @@ $input_array = array("displayname", "title", "mail", "telephonenumber", "physica
         <div class='field'>
             <label>分機</label>
             <input type='text' name='physicaldeliveryofficename' value='<?=$value_array['physicaldeliveryofficename']?>' placeholder='分機'>
+        </div>
+        <div class='field'>
+            <label>描述</label>
+            <input type='text' name='description' placeholder='描述'>
         </div>
         <div class='ui ordered list'>
             <?php foreach($entry as $key => $val): ?>

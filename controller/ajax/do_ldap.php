@@ -57,6 +57,14 @@ switch ($type) {
 			echo createWebadMessageBox($res = "兩次輸入密碼不同", "insertUser");
 			return ;
 		}
+
+		// 因原本使用的WebAPI無法新增物件到VPN群組中(TOP OU被寫死)，且本主機無遠端異動LDAP權限，故新增需求無法實現
+		$ou = 'VPN';
+		$dn = 'DC=tainan,DC=gov,DC=tw';
+		$res = $ad->insertUser($cn, $new_password, $displayname, $title, $telephonenumber, $physicaldeliveryofficename, $mail, $ou, $dn);
+
+		echo createWebadMessageBox($res, "insertUser");
+		$userAction->logger('callFunction', 'ad/new_vpn(username=' . $cn . ')res=' . $res);
 		break;
 	case "changecomputer":
 		if (!empty($isActive)) {
