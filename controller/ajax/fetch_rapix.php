@@ -172,20 +172,43 @@ function updateCPEAndClientMap()
         $status['updateCPEAndClientMap'] = 400;
     } else {
         $table = "rapix_cpe_client_map";
-        $key_column = "1";
-        $id = "1";
-        $db->delete($table, $key_column, $id);
+
+        // 取出目前未刪除資料
+        $exist_data =  [];
+        $query_data = $db->query($table, 'deleted_at IS NULL', null, 'rapix_client_id,rapix_cpe_id,`0`AS is_exist', '', ['1' => '1']);
+        foreach ($query_data as &$item) {
+            $exist_data[$item['rapix_client_id'] . $item['rapix_cpe_id']] = $item;
+        }
+        unset($item);
+        unset($query_data);
 
         foreach ($maps as $index => $map) {
             $entry = array();
 
             $entry['rapix_cpe_id'] = $map['CPEID'];
             foreach ($map['ClientID'] as $client_id) {
+                // 已經存在的註記並跳過
+                if (isset($exist_data[$client_id . $entry['rapix_cpe_id']])) {
+                    $exist_data[$client_id . $entry['rapix_cpe_id']]['is_exist'] = 1;
+                    continue;
+                }
+
+                // 新增
                 $entry['rapix_client_id'] = $client_id;
-                $entry['id'] = $count + 1;
+                $entry['created_at'] = date('Y-m-d H:i:s');
+                // $entry['id'] = $count + 1;
                 $db->insert($table, $entry);
                 $count = $count + 1;
             }
+        }
+
+        // 不存在的進行軟刪
+        $deleted_at = date("Y-m-d H:i:s");
+        $exist_data = array_filter($exist_data, fn ($d) => $d['is_exist'] == 0);
+        $sql = "UPDATE $table SET deleted_at=:deleted_at WHERE rapix_cpe_id=:rapix_cpe_id AND rapix_client_id=:rapix_client_id";
+        foreach ($exist_data as $key => $item) {
+            $db->execute($sql, [':deleted_at' => $deleted_at, ':rapix_cpe_id' => $item['rapix_cpe_id'], ':rapix_client_id' => $item['rapix_client_id']]);
+            $count = $count + 1;
         }
 
         $nowTime = date("Y-m-d H:i:s");
