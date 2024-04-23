@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 $db = Database::get();
-$Rows = load();
+$loadData = load();
 
 
 $table = "drip_ip_mac_used_list";
@@ -11,7 +11,7 @@ $id = "1";
 $db->delete($table, $key_column, $id);
 
 $count = 0;
-foreach ($Rows as $data) {
+foreach ($loadData['rows'] as $data) {
     if (!empty($data[5]) && $data[5] != 'IP') {
 
         //var_dump($data);
@@ -41,14 +41,14 @@ foreach ($Rows as $data) {
         $status['MemoByMAC'] = trim($data[48]);
         $status['MemoByIP'] = trim($data[65]);
 
-        echo $status['SwitchName'] . PHP_EOL;
+        echo $status['SwitchName'] . '|' . $status['IP'] . PHP_EOL;
 
         $db->insert($table, $status);
         $count = $count + 1;
     }
 }
 
-$nowTime = date("Y-m-d H:i:s", filemtime($inputFileName));
+$nowTime = date("Y-m-d H:i:s", $loadData['fileTime']);
 echo "The " . $count . " records have been inserted or updated into the drip_ip_mac_used_list on " . $nowTime . "\n\r<br>";
 $status = 200;
 
@@ -73,7 +73,11 @@ $db->insert($table, $data_array);
 
 function load()
 {
-    $Rows = [];
+    $result = [
+        'fileTime' => 0,
+        'rows' => [],
+    ];
+
     $inputFileNameList = array(
         __DIR__ . '/../../upload/drip/DrIP_IP_MAC_USED_IP_List_1.xls',
         __DIR__ . '/../../upload/drip/DrIP_IP_MAC_USED_IP_List_2.xls',
@@ -81,6 +85,10 @@ function load()
 
     foreach ($inputFileNameList as $inputFileName) {
         // $inputFileName =  __DIR__ . '/../../upload/drip/DrIP_IP_MAC_USED_IP_List.xls';
+        
+        $result['fileTime'] = max($result['fileTime'], filemtime($inputFileName));
+
+
         /** Load $inputFileName to a Spreadsheet Object  **/
         $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($inputFileName);
 
@@ -88,6 +96,7 @@ function load()
             echo "The inputFile : " . $inputFileName . " can't been loaded \n\r<br>";
             exit;
         }
+
 
         $worksheet = $spreadsheet->getActiveSheet();
 
@@ -101,9 +110,10 @@ function load()
             foreach ($cellIterator as $cell) {
                 $cells[] = $cell->getValue();
             }
-            $Rows[] = $cells;
+            $result['rows'][] = $cells;
         }
-
     }
-    return $Rows;
+
+
+    return $result;
 }
