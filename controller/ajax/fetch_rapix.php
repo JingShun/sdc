@@ -159,6 +159,7 @@ function updateClients()
 function updateCPEAndClientMap()
 {
     global $db, $rapix, $status;
+
     $maps = $rapix->fetchCPEIDAndClientIDMap();
     // $key_array = array(
     //     array('input' => 'cpe_id', 'output' => 'CPEID', 'default_value' => 0),
@@ -166,38 +167,38 @@ function updateCPEAndClientMap()
     // );
 
     $count = 0;
+    $nowTime = date("Y-m-d H:i:s");
     if (empty($maps)) {
         echo "No target-data" . PHP_EOL;
-        $nowTime = date("Y-m-d H:i:s");
         $status['updateCPEAndClientMap'] = 400;
     } else {
         $table = "rapix_cpe_client_map";
 
         // 取出目前未刪除資料
         $exist_data =  [];
-        $query_data = $db->query($table, 'deleted_at IS NULL', null, 'rapix_client_id,rapix_cpe_id,`0`AS is_exist', '', ['1' => '1']);
+        $sql = "SELECT rapix_client_id,rapix_cpe_id,0 AS is_exist FROM rapix_cpe_client_map WHERE deleted_at IS NULL";
+        $query_data = $db->execute($sql);
+        // 設定鍵值來加快處理
         foreach ($query_data as &$item) {
-            $exist_data[$item['rapix_client_id'] . $item['rapix_cpe_id']] = $item;
+            $exist_data[$item['rapix_client_id'] . '|' . $item['rapix_cpe_id']] = $item;
         }
         unset($item);
         unset($query_data);
 
+        // 新增或更新數據
         foreach ($maps as $index => $map) {
-            $entry = array();
+            $cpe_id = $map['CPEID'];
 
-            $entry['rapix_cpe_id'] = $map['CPEID'];
             foreach ($map['ClientID'] as $client_id) {
                 // 已經存在的註記並跳過
-                if (isset($exist_data[$client_id . $entry['rapix_cpe_id']])) {
-                    $exist_data[$client_id . $entry['rapix_cpe_id']]['is_exist'] = 1;
+                if (isset($exist_data[$client_id  . '|' .  $cpe_id])) {
+                    $exist_data[$client_id  . '|' .  $cpe_id]['is_exist'] = 1;
                     continue;
                 }
 
-                // 新增
-                $entry['rapix_client_id'] = $client_id;
-                $entry['created_at'] = date('Y-m-d H:i:s');
-                // $entry['id'] = $count + 1;
-                $db->insert($table, $entry);
+                // 新增or更新
+                $sql = "INSERT INTO rapix_cpe_client_map(rapix_client_id,rapix_cpe_id,created_at) VALUES (:rapix_client_id,:rapix_cpe_id,:created_at) ON DUPLICATE KEY UPDATE deleted_at = NULL";
+                $db->execute($sql, [':rapix_client_id' => $client_id, ':rapix_cpe_id' => $cpe_id, ':created_at' => $nowTime]);
                 $count = $count + 1;
             }
         }
