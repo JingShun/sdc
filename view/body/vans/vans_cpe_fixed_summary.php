@@ -9,7 +9,7 @@
         <div class="sub-content show">
             <div class="post">
                 <?= $route->createBreadcrumbs(' > '); ?>
-                <h2 class="ui dividing header">VANS修補情形</h2>
+                <h2 class="ui dividing header">VANS高風險修補情形</h2>
                 <div class="post_cell">
                     <div class="ui secondary pointing menu">
                         <a class="active item">每月累計修補情形</a>
@@ -27,7 +27,7 @@
                                             <th>月份</th>
                                             <th>新增數</th>
                                             <th>修補數</th>
-                                            <th>修補率</th>
+                                            <th>修補率(%)</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -64,7 +64,7 @@
                                             <th>機關</th>
                                             <th>新增數</th>
                                             <th>修補數</th>
-                                            <th>修補率</th>
+                                            <th>修補率(%)</th>
                                             <th></th>
                                         </tr>
                                     </thead>
