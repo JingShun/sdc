@@ -10,7 +10,42 @@ if (!isset($_GET['cvssge'])) {
     }
 }
 
+$type = 0;
+$sqlWhere = '';
+if (isset($_GET['type'])) {
+    $type = filter_var($_GET['type'], FILTER_VALIDATE_INT);
+}
 
+switch ($type) {
+    case 1: // 忽略 微軟、要授權的軟體
+        // 眾多相依
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Microsoft%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%JRE%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Java%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Python%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%MariaDB%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%MySQL%'";
+        // 要錢
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Acrobat%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Photoshop%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Illustrator%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Autodesk%'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%WinRAR%'";
+        break;
+    case 2: // 忽略 OS、Office
+        $sqlWhere .= "AND rapix_cpes.part <> 'o'";
+        $sqlWhere .= "AND rapix_cpes.title NOT LIKE 'Microsoft Office%'";
+        break;
+    case 0:
+    default:
+        break;
+}
+
+// 條件串聯處理
+$sqlWhere = trim($sqlWhere);
+if (!empty($sqlWhere) && strtoupper(substr($sqlWhere, 0, 3)) != 'AND') {
+    $sqlWhere = ' AND (' . $sqlWhere . ')';
+}
 $sql = "SELECT
     month_at,
     responsible_ou AS ou,
@@ -29,7 +64,7 @@ $sql = "SELECT
         INNER JOIN rapix_cpes ON rapix_cpes.id = rapix_cpe_client_map.rapix_cpe_id AND(rapix_cpes.cvss_v3_score > $cvssGE OR rapix_cpes.cvss_v2_score > $cvssGE)
         INNER JOIN rapix_clients ON rapix_cpe_client_map.rapix_client_id = rapix_clients.id
         INNER JOIN rapix_ou ON rapix_clients.org_id = rapix_ou.id AND rapix_ou.responsible_ou IS NOT NULL AND rapix_ou.dn NOT LIKE '區公所%'
-        WHERE YEAR(rapix_cpe_client_map.created_at) = YEAR(curdate())
+        WHERE YEAR(rapix_cpe_client_map.created_at) = YEAR(curdate()) $sqlWhere
         GROUP BY month_at,rapix_ou.responsible_ou,rapix_cpes.part,rapix_cpes.vendor,rapix_cpes.product
         union all
         SELECT
@@ -42,11 +77,13 @@ $sql = "SELECT
         INNER JOIN rapix_cpes ON rapix_cpes.id = rapix_cpe_client_map.rapix_cpe_id AND(rapix_cpes.cvss_v3_score > $cvssGE OR rapix_cpes.cvss_v2_score > $cvssGE)
         INNER JOIN rapix_clients ON rapix_cpe_client_map.rapix_client_id = rapix_clients.id
         INNER JOIN rapix_ou ON rapix_clients.org_id = rapix_ou.id AND rapix_ou.responsible_ou IS NOT NULL AND rapix_ou.dn NOT LIKE '區公所%'
-        WHERE YEAR(rapix_cpe_client_map.deleted_at) = YEAR(curdate())
+        WHERE YEAR(rapix_cpe_client_map.created_at) = YEAR(curdate()) AND YEAR(rapix_cpe_client_map.deleted_at) = YEAR(curdate()) $sqlWhere
         GROUP BY month_at,rapix_ou.responsible_ou,rapix_cpes.part,rapix_cpes.vendor,rapix_cpes.product
     ) t1
     GROUP BY month_at,responsible_ou,t1.part,t1.vendor,t1.product
     ";
+// WHERE YEAR(rapix_cpe_client_map.deleted_at) = YEAR(curdate()) $sqlWhere
+
 $cpeDetailList = $db->execute($sql);
 
 $month_gradually = []; // 想知道每月整體累計修補狀況
@@ -87,33 +124,39 @@ foreach ($month_gradually as $idx => $item0) {
     $month_gradually[$idx]['fixed_cnt'] = array_sum(array_slice($fixed_list, 0, $idx + 1));
 }
 
-$sql = "SELECT rapix_ou.responsible_ou AS ou, count(1) AS total
+$sql = "SELECT rapix_ou.responsible_ou AS ou, count(1) AS total, SUM(CASE WHEN rapix_cpe_client_map.deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS fixed_cnt
     FROM rapix_cpe_client_map
     INNER JOIN rapix_cpes ON rapix_cpes.id = rapix_cpe_client_map.rapix_cpe_id AND(rapix_cpes.cvss_v3_score > $cvssGE OR rapix_cpes.cvss_v2_score > $cvssGE)
     INNER JOIN rapix_clients ON rapix_cpe_client_map.rapix_client_id = rapix_clients.id
     INNER JOIN rapix_ou ON rapix_clients.org_id = rapix_ou.id AND rapix_ou.responsible_ou IS NOT NULL AND rapix_ou.dn NOT LIKE '區公所%'
-    WHERE YEAR(rapix_cpe_client_map.created_at) < YEAR(curdate())
-    AND rapix_cpe_client_map.deleted_at IS NOT NULL
+    WHERE YEAR(rapix_cpe_client_map.created_at) < YEAR(curdate()) $sqlWhere
     GROUP BY rapix_ou.responsible_ou";
 $ouCPE_lastYear = $db->execute($sql);
 
 
 // 修補率
-$totalCPE_lastYear = 0;
+$history_total = 0;
+$history_fixed = 0;
 
 foreach ($ou_gradually as $ou => &$item) {
-    $cpesLastYear = current(array_filter($ouCPE_lastYear, fn ($e) => $e['ou'] == $ou))['total'];
-    $totalCPE_lastYear += $cpesLastYear;
+    $history_ou_total = current(array_filter($ouCPE_lastYear, fn ($e) => $e['ou'] == $ou))['total'];
+    $history_ou_fixed = current(array_filter($ouCPE_lastYear, fn ($e) => $e['ou'] == $ou))['fixed_cnt'];
+    $history_total += $history_ou_total;
+    $history_fixed += $history_ou_fixed;
 
-    $item['last_cnt'] = $cpesLastYear;
-    $item['total'] = $item['add_cnt'] + $cpesLastYear;
+    $item['last_cnt'] = $history_ou_total;
+    $item['total'] = $item['add_cnt'] + $history_ou_total;
+    $item['fixed_cnt'] = $item['fixed_cnt'] + $history_ou_fixed;
     $item['fixed_rate'] = floor(100 * $item['fixed_cnt'] / $item['total']);
 }
 unset($item);
 
+// xdebug_break();
 foreach ($month_gradually as &$item) {
-    $item['fixed_rate'] = floor(100 * $item['fixed_cnt'] / ($item['add_cnt'] + $totalCPE_lastYear));
-    $item['total'] = $item['add_cnt'] + $totalCPE_lastYear;
+
+    $item['fixed_rate'] = floor(100 * ($item['fixed_cnt'] + $history_fixed) / ($item['add_cnt'] + $history_total));
+    $item['history_total'] = $item['add_cnt'] + $history_total;
+    $item['history_fixed'] = $item['fixed_cnt'] + $history_fixed;
 }
 unset($item);
 usort($ou_gradually, fn ($a, $b) => $a["fixed_rate"] < $b["fixed_rate"]);

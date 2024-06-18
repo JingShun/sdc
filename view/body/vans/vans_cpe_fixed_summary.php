@@ -41,7 +41,7 @@
                             <?php if (count($month_gradually) == 0) : ?>
                                 <p>查無此筆紀錄</p>
                             <?php else : ?>
-                                去年累計<?= $totalCPE_lastYear ?> 個未修補。
+                                去年累計<?= $history_total - $history_fixed ?> 個未修補，累計已修補<?= $history_fixed ?> 個，共<?= $history_total ?> 個。
                                 <table class="ui celled table">
                                     <thead>
                                         <tr>
@@ -64,7 +64,7 @@
                                                         <div class='bar'>
                                                             <div class='progress'></div>
                                                         </div>
-                                                        <div class='label'><?= $row['fixed_cnt'] ?>/<?= $row['total'] ?></div>
+                                                        <div class='label'><?= $row['history_fixed'] ?>/<?= $row['history_total'] ?></div>
                                                     </div>
                                                 </td>
                                                 <!-- <td class="<?= '' ? 'warning' : '' ?>"><?= '' ?></td> -->
