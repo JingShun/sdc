@@ -30,6 +30,9 @@
                     <button class="ui button <?= $cvssGE == 0 ? 'secondary' : '' ?>" onclick="chnageCVSS(0);">
                         全部風險
                     </button>
+                    <button class="ui button <?= $type == 1 ? 'secondary' : '' ?>" onclick="chnageType( <?= $type == 1 ? 0 : 1 ?>);">
+                        排除微軟、高相依性、授權資產
+                    </button>
 
                     <div class="ui secondary pointing menu">
                         <a class="active item">每月累計修補情形</a>
@@ -138,8 +141,16 @@
     );
 
     function chnageCVSS(cvss) {
+        changeQueryParam('cvssge', cvss);
+    }
+
+    function chnageType(type) {
+        changeQueryParam('type', type);
+    }
+
+    function changeQueryParam(key, value) {
         let searchParams = new URLSearchParams(window.location.search);
-        searchParams.set('cvssge', cvss);
+        searchParams.set(key, value);
         window.location.search = searchParams.toString();
     }
 </script>

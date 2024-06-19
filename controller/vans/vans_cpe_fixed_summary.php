@@ -10,7 +10,7 @@ if (!isset($_GET['cvssge'])) {
     }
 }
 
-$type = 0;
+$type = 1;
 $sqlWhere = '';
 if (isset($_GET['type'])) {
     $type = filter_var($_GET['type'], FILTER_VALIDATE_INT);
@@ -18,19 +18,20 @@ if (isset($_GET['type'])) {
 
 switch ($type) {
     case 1: // 忽略 微軟、要授權的軟體
-        // 眾多相依
+        // 微軟
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Microsoft%'";
+        // 眾多相依
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%JRE%'";
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Java%'";
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Python%'";
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%MariaDB%'";
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%MySQL%'";
-        // 要錢
+        // 要授權
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Acrobat%'";
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Photoshop%'";
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Illustrator%'";
         $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%Autodesk%'";
-        $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%WinRAR%'";
+        // $sqlWhere .= "AND rapix_cpes.title NOT LIKE '%WinRAR%'"; // 永久試用
         break;
     case 2: // 忽略 OS、Office
         $sqlWhere .= "AND rapix_cpes.part <> 'o'";
@@ -82,7 +83,6 @@ $sql = "SELECT
     ) t1
     GROUP BY month_at,responsible_ou,t1.part,t1.vendor,t1.product
     ";
-// WHERE YEAR(rapix_cpe_client_map.deleted_at) = YEAR(curdate()) $sqlWhere
 
 $cpeDetailList = $db->execute($sql);
 
