@@ -120,6 +120,11 @@
                             <div id="output" class="record_content"></div> <!-- end of #record_content-->
                         </div> <!-- end of .tabular-->
                     </div> <!-- end of .attached.segment-->
+
+                    <p>
+                        眾多相依：Microsoft, JRE, Java, Python, MariaDB, MySQL<br>
+                        需要授權：Acrobat, Photoshop, Illustrator, Autodesk, WinRAR
+                    </p>
                 </div><!--end of .post_cell-->
             </div><!--end of .post-->
         </div><!--end of .sub-content-->

@@ -12,7 +12,7 @@ $sql = "SELECT
     FROM `nics_vans_asset`
     LEFT JOIN security_rank ON nics_vans_asset.unit_name = security_rank.`name`
     WHERE cve_number > 0
-    GROUP BY unit_name, product_type, asset_name, asset_vendor
+    GROUP BY unit_name, security_rank.rank, product_type, asset_name, asset_vendor
     ORDER BY unit_name, product_type, asset_vendor";
 $queryNotProgressAsset = $db->execute($sql);
 
